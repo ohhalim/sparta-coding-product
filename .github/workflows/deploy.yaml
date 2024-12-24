@@ -1,0 +1,54 @@
+name: Deploy to cloudtype # 지금 우리 워크 플로우의 이름
+# 어떤 작업이 실행되어야해?
+on:
+  # push가 되면 이작업을  실행시켜줘
+  push:
+  # 어디 브랜치에 push가 되면?
+    branches:
+      # main 브랜치에 푸시가 되면!
+      - main
+# 아래의 작업들을 순서대로  실행해줘
+jobs:
+  # 첫번쨰 작업의 이름은 deploy야 
+  deploy:
+    # ubuntu-latest라는 이미지를 가져와서 아래 작업들을 거기서 실행할거야
+    runs-on: ubuntu-latest
+    # 아래의 작업을 단계별로 실행해줘 (위에서 아래로)
+    steps:
+      # checkout이라는  작업을 실행할거야
+      # 지금 리포지토리를 pull 받아서 최신으로 배포해야 해.
+      # 쉽게 말해서 최신화
+      - name: Checkout
+        uses: actions/checkout@v2
+        # 이제는 cloudtype 이랑 연결시켜야해
+      - name: Connect deploy key
+        #cloudtype-github-actions/connect@v1 라는 워크플로우를 따와서쓸거야
+        uses: cloudtype-github-actions/connect@v1
+        # 아레내가쓰는걸  갖다가 써야 위에동작이 제데ㅐ로 작동해
+        with:
+        # secret 에 있는 cloudtype token을 사용할겨야
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          # cloudtype 에있는 내 프로젝트 찾아줘
+          ghtoken: ${{ secrets.GHP_TOKEN }}
+          # 메인브랜치랑 연결시켜줘
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          project: ohhalim777/sparta-coding-product
+          stage: main
+          yaml: |
+            name: sparta-coding-product
+            app: python@3.9
+            options:
+              env:
+                - name: DJANGO_SECRET
+                  value: 5xeuu%71e@wu=#f@^xs6fp0d$adc@c7dvk@8-gfb%0r@ynpe*-
+              ports: 8000
+              start: python3 manage.py runserver 0:8000
+              buildenv: []
+            context:
+              git:
+                url: git@github.com:${{ github.repository }}.git
+                ref: ${{ github.ref }}
+              preset: python-django
